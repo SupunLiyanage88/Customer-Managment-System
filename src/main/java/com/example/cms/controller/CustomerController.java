@@ -1,4 +1,4 @@
-package com.example.cms;
+package com.example.cms.controller;
 
 import javax.validation.Valid;
 

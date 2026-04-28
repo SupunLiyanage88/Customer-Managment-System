@@ -8,7 +8,6 @@ C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\entity\CityEntity.java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\repository\CustomerMobileNumberRepository.java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\entity\ImportStatus.java
-C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\CustomerController.java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\service\BulkImportController.java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\service\BulkCustomerImportService.java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\controller\CustomerPageController.java
@@ -24,6 +23,7 @@ C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\config\GlobalExceptionHandler.java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\entity\CustomerAddressEntity.java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\repository\CustomerRepository.java
+C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\controller\CustomerController.java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\entity\BulkImportMode.java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\service\CustomerImportStatusService.java
 C:\Users\liyan\OneDrive\Documents\GitHub\Customer Managment System\src\main\java\com\example\cms\service\CustomerService.java
