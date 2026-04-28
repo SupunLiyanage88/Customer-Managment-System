@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --ink: #132238;
+            --muted: #5e6b7d;
+            --panel: rgba(255, 255, 255, 0.86);
+            --accent: #0d6efd;
+            --accent-2: #0ea5e9;
+            --line: rgba(19, 34, 56, 0.12);
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top left, rgba(13, 110, 253, 0.18), transparent 32%),
+                radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 28%),
+                linear-gradient(180deg, #f7f9fc 0%, #eef3f8 100%);
+            color: var(--ink);
+        }
+
+        .hero {
+            border: 1px solid var(--line);
+            background: linear-gradient(135deg, rgba(19, 34, 56, 0.98), rgba(30, 64, 99, 0.92));
+            color: #fff;
+            box-shadow: 0 20px 60px rgba(19, 34, 56, 0.18);
+        }
+
+        .glass {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            backdrop-filter: blur(14px);
+            box-shadow: 0 14px 40px rgba(19, 34, 56, 0.08);
+        }
+
+        .section-title {
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .table thead th {
+            color: var(--muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            border-bottom-color: var(--line);
+        }
+
+        .table tbody tr {
+            cursor: pointer;
+        }
+
+        .small-muted {
+            color: var(--muted);
+            font-size: 0.88rem;
+        }
+
+        .address-row {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 12px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        .btn-soft {
+            background: rgba(13, 110, 253, 0.08);
+            color: var(--accent);
+            border: 1px solid rgba(13, 110, 253, 0.12);
+        }
+    </style>
+</head>
+<body>
+<main class="container-fluid py-4 px-3 px-lg-4">
+    <section class="hero rounded-4 p-4 mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+            <div>
+                <div class="section-title text-white-50">Customer Management System</div>
+                <h1 class="display-6 fw-semibold mb-2">Create, edit, view, and bulk import customers</h1>
+                <p class="mb-0 text-white-50">REST-backed UI with table view, detail loading, nested addresses, family links, and Excel import jobs.</p>
+            </div>
+            <div class="text-lg-end">
+                <div class="small text-white-50">API status</div>
+                <span class="badge rounded-pill bg-success-subtle text-success-emphasis border border-success-subtle">Ready</span>
+            </div>
+        </div>
+    </section>
+
+    <div class="row g-4">
+        <div class="col-12 col-xl-7">
+            <section class="glass rounded-4 p-4 h-100">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <div class="section-title">Customer Table View</div>
+                        <h2 class="h4 mb-1">Customers</h2>
+                        <div class="small-muted">Click a row to load the full record into the editor.</div>
+                    </div>
+                    <button class="btn btn-soft btn-sm" type="button" id="refreshButton">Refresh</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>NIC</th>
+                            <th>DOB</th>
+                        </tr>
+                        </thead>
+                        <tbody id="customerTableBody">
+                        <tr><td colspan="3" class="text-center py-4 text-muted">Loading customers...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <div class="col-12 col-xl-5">
+            <section class="glass rounded-4 p-4 mb-4">
+                <div class="section-title">Customer Editor</div>
+                <h2 class="h4 mb-3" id="formTitle">Create customer</h2>
+                <form id="customerForm">
+                    <input type="hidden" id="customerId" />
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <input class="form-control" id="name" required />
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Date of birth</label>
+                            <input class="form-control" id="dateOfBirth" type="date" required />
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">NIC number</label>
+                            <input class="form-control" id="nicNumber" required />
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Mobile numbers</label>
+                        <input class="form-control" id="mobileNumbers" placeholder="0771234567, 0712345678" />
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label">Family member NICs</label>
+                        <input class="form-control" id="familyMemberNicNumbers" placeholder="NIC001, NIC002" />
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label mb-0">Addresses</label>
+                            <button class="btn btn-soft btn-sm" type="button" id="addAddressButton">Add address</button>
+                        </div>
+                        <div id="addressContainer"></div>
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mt-4">
+                        <button class="btn btn-primary" type="submit">Save customer</button>
+                        <button class="btn btn-outline-secondary" type="button" id="resetButton">Reset</button>
+                        <button class="btn btn-outline-danger" type="button" id="loadSelectedButton">Load selected</button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="glass rounded-4 p-4 mb-4">
+                <div class="section-title">Bulk Excel Import</div>
+                <h2 class="h4 mb-3">Upload file</h2>
+                <form id="bulkForm" class="d-flex flex-column gap-3">
+                    <input class="form-control" id="bulkFile" type="file" accept=".xlsx" required />
+                    <div class="btn-group" role="group" aria-label="Bulk mode">
+                        <input type="radio" class="btn-check" name="bulkMode" id="bulkCreate" value="create" checked>
+                        <label class="btn btn-outline-primary" for="bulkCreate">Create</label>
+                        <input type="radio" class="btn-check" name="bulkMode" id="bulkUpdate" value="update">
+                        <label class="btn btn-outline-primary" for="bulkUpdate">Update</label>
+                    </div>
+                    <button class="btn btn-dark" type="submit">Start import</button>
+                </form>
+                <div class="mt-3 small-muted" id="bulkStatus">No bulk job running.</div>
+            </section>
+
+            <section class="glass rounded-4 p-4">
+                <div class="section-title">Job Status</div>
+                <h2 class="h4 mb-3">Latest import</h2>
+                <pre class="mb-0 bg-dark text-white rounded-3 p-3" id="jobOutput">{}</pre>
+            </section>
+        </div>
+    </div>
+</main>
+
+<script>
+    const state = {
+        selectedId: null,
+        customers: [],
+        countries: [],
+        cities: []
+    };
+
+    const customerTableBody = document.getElementById('customerTableBody');
+    const addressContainer = document.getElementById('addressContainer');
+    const formTitle = document.getElementById('formTitle');
+    const jobOutput = document.getElementById('jobOutput');
+    const bulkStatus = document.getElementById('bulkStatus');
+
+    function escapeHtml(text) {
+        return String(text || '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+    }
+
+    function addressRowTemplate(address = {}) {
+        const row = document.createElement('div');
+        row.className = 'address-row';
+        row.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong>Address</strong>
+                <button type="button" class="btn btn-outline-danger btn-sm remove-address">Remove</button>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Address Line 1</label>
+                <input class="form-control address-line1" value="${escapeHtml(address.addressLine1 || '')}" />
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Address Line 2</label>
+                <input class="form-control address-line2" value="${escapeHtml(address.addressLine2 || '')}" />
+            </div>
+            <div class="row g-2">
+                <div class="col-6">
+                    <label class="form-label">City</label>
+                    <select class="form-select address-city"></select>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Country</label>
+                    <select class="form-select address-country"></select>
+                </div>
+            </div>
+        `;
+
+        row.querySelector('.remove-address').addEventListener('click', () => {
+            row.remove();
+        });
+
+        fillAddressSelects(row, address);
+        return row;
+    }
+
+    function fillAddressSelects(row, address) {
+        const citySelect = row.querySelector('.address-city');
+        const countrySelect = row.querySelector('.address-country');
+
+        citySelect.innerHTML = '<option value="">Select city</option>';
+        state.cities.forEach(city => {
+            const option = document.createElement('option');
+            option.value = city.id;
+            option.textContent = `${city.name} (${city.country ? city.country.name : ''})`;
+            citySelect.appendChild(option);
+        });
+
+        countrySelect.innerHTML = '<option value="">Select country</option>';
+        state.countries.forEach(country => {
+            const option = document.createElement('option');
+            option.value = country.id;
+            option.textContent = `${country.name} (${country.code})`;
+            countrySelect.appendChild(option);
+        });
+
+        if (address.city && address.city.id) {
+            citySelect.value = address.city.id;
+        }
+        if (address.country && address.country.id) {
+            countrySelect.value = address.country.id;
+        }
+    }
+
+    function addAddressRow(address = {}) {
+        addressContainer.appendChild(addressRowTemplate(address));
+    }
+
+    function resetForm() {
+        state.selectedId = null;
+        document.getElementById('customerId').value = '';
+        document.getElementById('name').value = '';
+        document.getElementById('dateOfBirth').value = '';
+        document.getElementById('nicNumber').value = '';
+        document.getElementById('mobileNumbers').value = '';
+        document.getElementById('familyMemberNicNumbers').value = '';
+        addressContainer.innerHTML = '';
+        addAddressRow();
+        formTitle.textContent = 'Create customer';
+    }
+
+    function renderTable(customers) {
+        if (!customers.length) {
+            customerTableBody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted">No customers found.</td></tr>';
+            return;
+        }
+
+        customerTableBody.innerHTML = customers.map(customer => `
+            <tr data-id="${customer.id}">
+                <td class="fw-semibold">${escapeHtml(customer.name)}</td>
+                <td>${escapeHtml(customer.nicNumber)}</td>
+                <td>${escapeHtml(customer.dateOfBirth)}</td>
+            </tr>
+        `).join('');
+
+        customerTableBody.querySelectorAll('tr[data-id]').forEach(row => {
+            row.addEventListener('click', () => openCustomer(row.dataset.id));
+        });
+    }
+
+    async function loadCustomers() {
+        const response = await fetch('/api/customers?page=0&size=50&sort=name,asc');
+        const data = await response.json();
+        state.customers = data.content || [];
+        renderTable(state.customers);
+    }
+
+    async function loadMasterData() {
+        const [countriesResponse, citiesResponse] = await Promise.all([
+            fetch('/api/master/countries'),
+            fetch('/api/master/cities')
+        ]);
+        state.countries = await countriesResponse.json();
+        state.cities = await citiesResponse.json();
+    }
+
+    async function openCustomer(id) {
+        const response = await fetch(`/api/customers/${id}`);
+        const customer = await response.json();
+        state.selectedId = customer.id;
+        document.getElementById('customerId').value = customer.id;
+        document.getElementById('name').value = customer.name || '';
+        document.getElementById('dateOfBirth').value = customer.dateOfBirth || '';
+        document.getElementById('nicNumber').value = customer.nicNumber || '';
+        document.getElementById('mobileNumbers').value = (customer.mobileNumbers || []).map(item => item.mobileNumber).join(', ');
+        document.getElementById('familyMemberNicNumbers').value = (customer.familyMembers || []).map(item => item.nicNumber).join(', ');
+        addressContainer.innerHTML = '';
+        (customer.addresses || []).forEach(address => addAddressRow(address));
+        if (!customer.addresses || !customer.addresses.length) {
+            addAddressRow();
+        }
+        formTitle.textContent = `Editing ${customer.name}`;
+    }
+
+    function collectAddresses() {
+        return Array.from(addressContainer.querySelectorAll('.address-row')).map(row => ({
+            addressLine1: row.querySelector('.address-line1').value,
+            addressLine2: row.querySelector('.address-line2').value,
+            cityId: row.querySelector('.address-city').value ? Number(row.querySelector('.address-city').value) : null,
+            countryId: row.querySelector('.address-country').value ? Number(row.querySelector('.address-country').value) : null
+        })).filter(address => address.addressLine1 || address.addressLine2 || address.cityId || address.countryId);
+    }
+
+    function collectRequest() {
+        return {
+            name: document.getElementById('name').value,
+            dateOfBirth: document.getElementById('dateOfBirth').value,
+            nicNumber: document.getElementById('nicNumber').value,
+            mobileNumbers: document.getElementById('mobileNumbers').value.split(',').map(value => value.trim()).filter(Boolean),
+            familyMemberNicNumbers: document.getElementById('familyMemberNicNumbers').value.split(',').map(value => value.trim()).filter(Boolean),
+            addresses: collectAddresses()
+        };
+    }
+
+    async function saveCustomer(event) {
+        event.preventDefault();
+        const payload = collectRequest();
+        const customerId = state.selectedId;
+        const response = await fetch(customerId ? `/api/customers/${customerId}` : '/api/customers', {
+            method: customerId ? 'PUT' : 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            alert(error.message || 'Unable to save customer');
+            return;
+        }
+
+        await loadCustomers();
+        resetForm();
+    }
+
+    async function submitBulk(event) {
+        event.preventDefault();
+        const fileInput = document.getElementById('bulkFile');
+        const selectedMode = document.querySelector('input[name="bulkMode"]:checked').value;
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        const response = await fetch(`/api/customers/bulk/${selectedMode}`, {
+            method: 'POST',
+            body: formData
+        });
+        const job = await response.json();
+        jobOutput.textContent = JSON.stringify(job, null, 2);
+        bulkStatus.textContent = `Job ${job.jobId} submitted as ${job.status}.`;
+        pollJob(job.jobId);
+    }
+
+    async function pollJob(jobId) {
+        const response = await fetch(`/api/imports/${jobId}`);
+        const job = await response.json();
+        jobOutput.textContent = JSON.stringify(job, null, 2);
+        if (job.status === 'PENDING' || job.status === 'PROCESSING') {
+            window.setTimeout(() => pollJob(jobId), 2000);
+        } else {
+            bulkStatus.textContent = `Job ${job.jobId} finished with status ${job.status}.`;
+            await loadCustomers();
+        }
+    }
+
+    document.getElementById('customerForm').addEventListener('submit', saveCustomer);
+    document.getElementById('resetButton').addEventListener('click', resetForm);
+    document.getElementById('addAddressButton').addEventListener('click', () => addAddressRow());
+    document.getElementById('loadSelectedButton').addEventListener('click', async () => {
+        if (state.selectedId) {
+            await openCustomer(state.selectedId);
+        }
+    });
+    document.getElementById('bulkForm').addEventListener('submit', submitBulk);
+    document.getElementById('refreshButton').addEventListener('click', loadCustomers);
+
+    (async function bootstrap() {
+        await loadMasterData();
+        resetForm();
+        await loadCustomers();
+    })();
+</script>
+</body>
+</html>
