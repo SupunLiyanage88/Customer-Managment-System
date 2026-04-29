@@ -9,11 +9,10 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.xml.parsers.SAXParserFactory;
-
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
 import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ooxml.util.SAXHelper;
 import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
 import org.apache.poi.xssf.eventusermodel.XSSFReader;
 import org.apache.poi.xssf.model.StylesTable;
@@ -37,15 +36,23 @@ public final class ExcelCustomerRowParser {
             XSSFReader reader = new XSSFReader(packageHandle);
             StylesTable styles = reader.getStylesTable();
             ReadOnlySharedStringsTable sharedStrings = new ReadOnlySharedStringsTable(packageHandle);
-            XMLReader parser = SAXParserFactory.newInstance().newSAXParser().getXMLReader();
-            CustomerSheetHandler sheetHandler = new CustomerSheetHandler(consumer);
-            XSSFSheetXMLHandler sheetXmlHandler = new XSSFSheetXMLHandler(styles, sharedStrings, sheetHandler, new DataFormatter(), false);
-            parser.setContentHandler(sheetXmlHandler);
             Iterator<InputStream> sheets = reader.getSheetsData();
+            boolean importedAnyRows = false;
             if (sheets.hasNext()) {
-                try (InputStream sheet = sheets.next()) {
-                    parser.parse(new InputSource(sheet));
-                }
+                do {
+                    XMLReader parser = SAXHelper.newXMLReader();
+                    CustomerSheetHandler sheetHandler = new CustomerSheetHandler(consumer);
+                    XSSFSheetXMLHandler sheetXmlHandler = new XSSFSheetXMLHandler(styles, sharedStrings, sheetHandler, new DataFormatter(), false);
+                    parser.setContentHandler(sheetXmlHandler);
+                    try (InputStream sheet = sheets.next()) {
+                        parser.parse(new InputSource(sheet));
+                    }
+                    importedAnyRows = importedAnyRows || sheetHandler.hasImportedRows();
+                } while (sheets.hasNext());
+            }
+
+            if (!importedAnyRows) {
+                throw new IllegalArgumentException("No customer rows were found in the Excel file. Ensure the workbook contains the headers Name, Date of Birth, and NIC Number.");
             }
         }
     }
@@ -55,6 +62,7 @@ public final class ExcelCustomerRowParser {
         private final RowConsumer consumer;
         private final Map<Integer, String> headerColumns = new HashMap<Integer, String>();
         private final Map<Integer, String> rowValues = new HashMap<Integer, String>();
+        private boolean importedRows;
 
         private CustomerSheetHandler(RowConsumer consumer) {
             this.consumer = consumer;
@@ -67,9 +75,15 @@ public final class ExcelCustomerRowParser {
 
         @Override
         public void endRow(int rowNum) {
-            if (rowNum == 0) {
-                for (Map.Entry<Integer, String> entry : rowValues.entrySet()) {
-                    headerColumns.put(entry.getKey(), normalize(entry.getValue()));
+            if (rowValues.isEmpty()) {
+                return;
+            }
+
+            if (headerColumns.isEmpty()) {
+                if (isHeaderRow()) {
+                    for (Map.Entry<Integer, String> entry : rowValues.entrySet()) {
+                        headerColumns.put(entry.getKey(), normalize(entry.getValue()));
+                    }
                 }
                 return;
             }
@@ -94,6 +108,7 @@ public final class ExcelCustomerRowParser {
             }
 
             consumer.accept(new ExcelCustomerRow(name.trim(), parseDate(dateOfBirthText.trim(), rowNum + 1), nicNumber.trim()));
+            importedRows = true;
         }
 
         @Override
@@ -104,6 +119,23 @@ public final class ExcelCustomerRowParser {
 
         @Override
         public void headerFooter(String text, boolean isHeader, String tagName) {
+        }
+
+        private boolean hasImportedRows() {
+            return importedRows;
+        }
+
+        private boolean isHeaderRow() {
+            return containsHeader("name") && containsHeader("dateofbirth") && containsHeader("nicnumber");
+        }
+
+        private boolean containsHeader(String headerName) {
+            for (Map.Entry<Integer, String> entry : rowValues.entrySet()) {
+                if (headerName.equals(normalize(entry.getValue()))) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private String getValue(String headerName) {

@@ -184,7 +184,10 @@ public class BulkCustomerImportService {
                         failureRows++;
                         continue;
                     }
-                    toSave.add(new CustomerEntity(row.getName().trim(), row.getDateOfBirth(), row.getNicNumber().trim()));
+                    String customerName = row.getName().trim();
+                    String nicNumber = row.getNicNumber().trim();
+                    System.out.println("Bulk import: adding customer " + customerName + " (NIC: " + nicNumber + ")");
+                    toSave.add(new CustomerEntity(customerName, row.getDateOfBirth(), nicNumber));
                     successRows++;
                 } else {
                     if (existing == null) {

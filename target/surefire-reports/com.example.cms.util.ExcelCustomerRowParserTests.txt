@@ -1,0 +1,12 @@
+-------------------------------------------------------------------------------
+Test set: com.example.cms.util.ExcelCustomerRowParserTests
+-------------------------------------------------------------------------------
+Tests run: 2, Failures: 0, Errors: 2, Skipped: 0, Time elapsed: 1.233 s <<< FAILURE! - in com.example.cms.util.ExcelCustomerRowParserTests
+parsesRowsFromLaterSheetWithHeaderBelowIntroRow  Time elapsed: 1.081 s  <<< ERROR!
+java.lang.IllegalArgumentException: No customer rows were found in the Excel file. Ensure the workbook contains the headers Name, Date of Birth, and NIC Number.
+	at com.example.cms.util.ExcelCustomerRowParserTests.parsesRowsFromLaterSheetWithHeaderBelowIntroRow(ExcelCustomerRowParserTests.java:79)
+
+parsesRowsFromSingleSheetWithHeaderFirstRow  Time elapsed: 0.144 s  <<< ERROR!
+java.lang.IllegalArgumentException: No customer rows were found in the Excel file. Ensure the workbook contains the headers Name, Date of Birth, and NIC Number.
+	at com.example.cms.util.ExcelCustomerRowParserTests.parsesRowsFromSingleSheetWithHeaderFirstRow(ExcelCustomerRowParserTests.java:41)
+
